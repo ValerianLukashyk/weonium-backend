@@ -9,7 +9,6 @@ const db = require('./db')
 const MongoStore = require('connect-mongo');
 const initRoutes = require("./routes/web");
 //IMPORT ROUTES
-const mailRoute = require('./routes/mail')
 const postsRoute = require('./routes/posts')
 const worksRoute = require('./routes/works')
 const authRoute = require('./routes/auth')
@@ -36,13 +35,16 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 app.use('/upload', express.static('upload'))
+
+//TODO: Rename Posts to WebGL Works
 app.use('/posts', postsRoute)
+
 app.use('/works', worksRoute)
 app.use('/auth', authRoute)
 app.use('/settings', settingsRoute)
 initRoutes(app)
 
-app.use('/mail', mailRoute)
+// app.use('/mail', mailRoute)
 
 // ROUTES
 app.get('/', (req, res) => {

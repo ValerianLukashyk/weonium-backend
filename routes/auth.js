@@ -62,7 +62,20 @@ router.post('/login', async (req, res, next) => {
   user.isAuth = true
   user.token = token
   await user.save()
+  console.log('authed')
   res.header('auth-token', token).send(token)
+
+})
+
+// PASSPORT LOCAL LOGIN
+router.post('/local-login', function (req, res) {
+  // If this function gets called, authentication was successful.
+  // `req.user` contains the authenticated user.
+
+  res.redirect('/profile')
+});
+
+router.get('/local-login/success', async (req, res, next) => {
 
 })
 
@@ -158,9 +171,9 @@ router.get('/logout', (req, res) => {
 
 // CHECK IF isAuth?
 router.get('/me', verify, async (req, res) => {
-  // console.log(req.user)
+  console.log(req.user._id)
   const user = await User.findOne({
-    token: req.user
+    _id: req.user._id
   }).catch((error) => {
     res.send(error)
   })
