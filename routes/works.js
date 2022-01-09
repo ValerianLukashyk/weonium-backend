@@ -27,9 +27,9 @@ router.post('/', verify, uploadController.uploadImages, uploadController.resizeI
   }
 
   const images = req.body.images
-    .map(image => `${process.env.SERVER_URL}/upload/${image}`)
+    .map(image => `/upload/${image}`)
   const videos = req.body.videos
-    .map(vid => `${process.env.SERVER_URL}/upload/${vid}`)
+    .map(vid => `/upload/${vid}`)
 
   const work = await new Works({
     title: req.body.title,

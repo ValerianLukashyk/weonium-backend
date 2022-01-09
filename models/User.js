@@ -33,7 +33,8 @@ const userSchema = new mongoose.Schema({
     type: Boolean
   },
   language: {
-    type: String
+    type: String,
+    default: 'eng'
   },
   picture: {
     type: String
@@ -57,6 +58,7 @@ const userSchema = new mongoose.Schema({
   isAuth: {
     type: Boolean,
     required: false,
+    default: false,
   },
   token: {
     type: String,
@@ -67,7 +69,7 @@ const userSchema = new mongoose.Schema({
   },
   superuser: {
     type: Boolean,
-    default: true
+    default: false
   }
 })
 

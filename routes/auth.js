@@ -6,7 +6,30 @@ const bcrypt = require('bcryptjs')
 const verify = require('../routes/verifyToken');
 const passport = require('passport');
 const generator = require('generate-password');
+const nodemailer = require("nodemailer");
 
+async function sendConfirmationMail(req, res) {
+    let transporter = nodemailer.createTransport({
+        host: "smtp.titan.email",
+        port: 465,
+        secure: true,
+        auth: {
+            user: "valerian@weonium.space",
+            pass: "sanpedro1990",
+        },
+    });
+
+    let info = await transporter.sendMail({
+        from: '"Weonium" <valerian@weonium.space>',
+        to: "space.onion23@gmail.com",
+        subject: "Hello",
+        text: "Hello world?",
+        html: "<b>Hello world?</b>",
+    });
+    
+    res.send(info)
+    console.log("Message sent: %s", info);
+}
 // CHECK IF GOOGLE CALLBACK HAVE USER obj
 function isLoggedIn(req, res, next) {
   req.user ? next() : res.sendStatus(401)
@@ -29,18 +52,23 @@ router.post('/register', async (req, res) => {
 
   //Create a new User
   const user = new User({
-    name: req.body.name,
+    displayName: req.body.name,
     email: req.body.email,
     password: hashedPassword,
+    email_verified: false,
+    verified: false,
+    provider: 'local',
   })
   try {
     const savedUser = await user.save()
+    
     res.status(200).send({ savedUser })
+    
     console.log('REGISTER NEW ACCOUNT')
   } catch (err) {
     res.status(400).send('Sorry :( something goes wrong :(')
   }
-})
+}, sendConfirmationMail)
 
 //LOGIN ROUTE
 router.post('/login', async (req, res, next) => {

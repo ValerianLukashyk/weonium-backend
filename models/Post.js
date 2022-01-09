@@ -5,14 +5,27 @@ const PostSchema = mongoose.Schema({
     type: String,
     require: true,
   },
-  picture: {
+  slug: {
     type: String,
-    require: false,
+  },
+  period: {
+    type: String,
+    require: true
+  },
+  stack: {
+    type: String,
+    require: true,
   },
   description: {
     type: String,
     require: true,
   },
+  url: {
+    type: String,
+    require: true,
+  },
+  screenshots: [],
+  videos: [],
   date: {
     type: Date,
     default: Date.now,

@@ -2,39 +2,15 @@ const multer = require("multer");
 const sharp = require("sharp");
 
 const multerFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith("image" || "video")) {
+    if (file.mimetype.startsWith("image")) {
         cb(null, true);
     } else {
-        cb("Please upload only images and video.", false);
+        cb("Please upload only images.", false);
     }
 };
 
 
-const multerStorage = multer.memoryStorage(); // for image
-
-// const videoStorage = multer.diskStorage({
-//     destination: 'videos', // Destination to store video 
-//     filename: (req, file, cb) => {
-//         cb(null, file.fieldname + '_' + Date.now()
-//             + path.extname(file.originalname))
-//     }
-// });
-
-// const videoUpload = multer({
-//     storage: videoStorage,
-//     limits: {
-//         fileSize: 100000000 // 10000000 Bytes = 10 MB
-//     },
-//     fileFilter(req, file, cb) {
-//         // upload only mp4 and mkv format
-//         if (!file.originalname.match(/\.(mp4|MPEG-4|mkv)$/)) {
-//             return cb(new Error('Please upload a video'))
-//         }
-//         cb(undefined, true)
-//     }
-// })
-
-// const uploadVideos = videoUpload.single('video')
+const multerStorage = multer.memoryStorage(); // for images
 
 
 const upload = multer({
@@ -42,22 +18,8 @@ const upload = multer({
     fileFilter: multerFilter
 });
 
-const uploadFiles = upload.array("all", 10);
-const uploadPostFiles = upload.single("image");
+const uploadFiles = upload.array("images", 10);
 
-const uploadPostImage = (req, res, next) => {
-    uploadPostFiles(req, res, err => {
-        if (err instanceof multer.MulterError) {
-            if (err.code === "LIMIT_UNEXPECTED_FILE") {
-                return res.send("Too many files to upload.")
-            }
-        } else if (err) {
-            return res.send(err)
-        }
-
-        next()
-    })
-}
 
 const uploadImages = (req, res, next) => {
     uploadFiles(req, res, err => {
@@ -120,7 +82,6 @@ const resizeImages = async (req, res, next) => {
 
 module.exports = {
     uploadImages: uploadImages,
-    uploadPostImage: uploadPostImage,
     resizeImages: resizeImages,
     // getResult: getResult
 };

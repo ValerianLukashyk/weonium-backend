@@ -13,6 +13,8 @@ const postsRoute = require('./routes/posts')
 const worksRoute = require('./routes/works')
 const authRoute = require('./routes/auth')
 const settingsRoute = require('./routes/siteSettings')
+const mailRoute = require('./routes/mail')
+
 const bodyParser = require('body-parser');
 
 // Connect to DB
@@ -44,7 +46,7 @@ app.use('/auth', authRoute)
 app.use('/settings', settingsRoute)
 initRoutes(app)
 
-// app.use('/mail', mailRoute)
+app.use('/mail', mailRoute)
 
 // ROUTES
 app.get('/', (req, res) => {

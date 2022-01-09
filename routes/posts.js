@@ -5,7 +5,7 @@ const verify = require('./verifyToken')
 const uploadController = require("../controllers/imageUploads");
 
 //GET BACK ALL THE POSTS
-router.get('/', verify, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const posts = await Post.find()
     res.json(posts)
@@ -15,64 +15,49 @@ router.get('/', verify, async (req, res) => {
 })
 
 //CREATE A NEW POST
-router.post('/', verify, async (req, res) => {
-  const post = new Post({
-    title: req.body.title,
-    description: req.body.description,
+router.post('/', verify, uploadController.uploadImages, uploadController.resizeImages, async (req, res) => {
+  if (req.body.images.length <= 0) {
+    return res.send(`You must select at least 1 image.`);
+  }
 
+  const images = req.body.images
+    .map(image => `/upload/${image}`)
+  
+  const glWork = await new Post({
+    title: req.body.title,
+    slug: req.body.title.toLowerCase().replace(/\s/g, "-"),
+    description: req.body.description,
+    url: req.body.url,
+    screenshots: images,
   })
   try {
-    const savedPost = await post.save()
-    res.json(savedPost)
-    console.log('One more post has been created!')
+    const savedGLWork = await glWork.save()
+    res.send(savedGLWork)
+    console.log('One more glWork has been added!')
   } catch (err) {
     res.json({ message: err })
   }
 })
 
-// ADD PICTURE TO SPECIFIC POST
-router.post('/image/:postId',
-  verify,
-  uploadController.uploadPostImage,
-  uploadController.resizeImages,
-  async (req, res) => {
-    if (req.body.picture.length <= 0) {
-      return res.send(`You must select at least 1 image.`);
-    }
-
-    const image = "http://localhost:5000/upload/" + req.body.picture
-
-
-    try {
-
-      const updatedPost = await Post.updateOne(
-        { _id: req.params.postId },
-        { $set: { picture: image } }
-      )
-      res.json(updatedPost)
-    } catch (err) {
-      res.json({ message: err })
-    }
-  })
-
 
 //GET SPECIFIC POST
-router.get('/:postId', async (req, res) => {
+router.get('/:slug', async (req, res) => {
+  console.log(req.params)
   try {
-    const post = await Post.findById(req.params.postId)
+    const post = await Post.findOne({ slug: req.params.slug })
     res.json(post)
-    console.log('Look at post' + req.params.postId)
+    console.log('Look at post' + req.params.slug)
   } catch (err) {
     res.json({ message: err })
   }
 })
 
 //DELETE SPECIFIC POST
-router.delete('/:postId', verify, async (req, res) => {
+router.delete('/:slug', verify, async (req, res) => {
   try {
-    const removedPost = await Post.remove({ _id: req.params.postId })
+    const removedPost = await Post.deleteOne({ slug: req.params.slug })
     res.json(removedPost)
-    console.log('Post id: ' + req.params.postId + 'has been deleted')
+    console.log('Post id: ' + req.params.slug + ' has been deleted')
   } catch (err) {
     res.json({ message: err })
   }
