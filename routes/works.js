@@ -89,13 +89,7 @@ router.patch('/:title', verify, async (req, res) => {
         }
       }
     )
-    console.log(
-      'Work ' +
-      req.params.title +
-      ' has been updated. ' +
-      'New title: ' +
-      req.body.title
-    )
+    
     res.json(updatedWork)
   } catch (err) {
     res.json({ message: err })

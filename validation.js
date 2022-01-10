@@ -10,7 +10,6 @@ const registerValidation = (data) => {
     confirmPassword: Joi.string().min(6).required(),
   })
   const result = schema.validate(data)
-  // console.log(result)
   return result
 }
 //LOGIN Validation

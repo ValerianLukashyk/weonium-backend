@@ -6,39 +6,40 @@ const bcrypt = require('bcryptjs')
 const verify = require('../routes/verifyToken');
 const passport = require('passport');
 const generator = require('generate-password');
-const nodemailer = require("nodemailer");
+const sendMailController = require("../controllers/mail");
+const uploadController = require("../controllers/imageUploads");
 
-async function sendConfirmationMail(req, res) {
-    let transporter = nodemailer.createTransport({
-        host: "smtp.titan.email",
-        port: 465,
-        secure: true,
-        auth: {
-            user: "valerian@weonium.space",
-            pass: "sanpedro1990",
-        },
-    });
 
-    let info = await transporter.sendMail({
-        from: '"Weonium" <valerian@weonium.space>',
-        to: "space.onion23@gmail.com",
-        subject: "Hello",
-        text: "Hello world?",
-        html: "<b>Hello world?</b>",
-    });
-    
-    res.send(info)
-    console.log("Message sent: %s", info);
-}
-// CHECK IF GOOGLE CALLBACK HAVE USER obj
-function isLoggedIn(req, res, next) {
-  req.user ? next() : res.sendStatus(401)
-}
+// UPLOAD PROFILE AVATAR
+router.post('/photo-upload/:id', verify, uploadController.uploadImages, uploadController.resizeImages, async (req,res,next)=>{
+  if (req.body.images.length <= 0) {
+    return res.send(`You must select at least 1 image.`);
+  }
+
+  const images = req.body.images
+    .map(image => `/upload/${image}`)
+
+    const updatedUser = await User.updateOne(
+      { _id: req.params.id },
+      {
+        $set: {
+          picture: process.env.SERVER_URL +":"+process.env.SERVER_PORT+images[0]
+        }
+      }
+    )
+
+    const user = await User.findOne({ _id: req.params.id })
+
+    res.send({message: "Profile picture has updated", url: user.picture})
+
+})
+
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
+
   //VALIDATE THE DATA BEFORE WE MAKING A USER
   const { error } = registerValidation(req.body)
-  if (error) return res.status(400).send('Something goes wrong')
+  if (error) return res.status(400).send(error)
 
   //Checking if user is already in DB
   const emailExist = await User.findOne({
@@ -46,29 +47,63 @@ router.post('/register', async (req, res) => {
   })
   if (emailExist) return res.status(400).send('Email already exist')
   if (req.body.password !== req.body.confirmPassword) return res.status(400).send('Passwords not match')
+
   //HASH THE PASSWORD
   const salt = await bcrypt.genSalt(10)
   const hashedPassword = await bcrypt.hash(req.body.password, salt)
+
+  // CREATE TOKEN FOR EMAIL CONFIRMATION
+  const token = jwt.sign({ email: req.body.email }, process.env.TOKEN_SECRET)
 
   //Create a new User
   const user = new User({
     displayName: req.body.name,
     email: req.body.email,
     password: hashedPassword,
-    email_verified: false,
-    verified: false,
+    confirmationCode: token,
     provider: 'local',
   })
   try {
     const savedUser = await user.save()
-    
-    res.status(200).send({ savedUser })
-    
-    console.log('REGISTER NEW ACCOUNT')
-  } catch (err) {
-    res.status(400).send('Sorry :( something goes wrong :(')
+    const info = await sendMailController.sendConfirmEmail(
+      savedUser.displayName,
+      savedUser.email,
+      savedUser.confirmationCode
+    );
+    res.send({ message: info })
   }
-}, sendConfirmationMail)
+  catch (err) {
+    res.status(400).send('Sorry, but something goes wrong. Try again')
+  }
+})
+
+// Confirm EMAIL
+router.get("/confirm/:confirmationCode", (req, res, next) => {
+
+  User.findOne({
+    confirmationCode: req.params.confirmationCode,
+  })
+    .then((user) => {
+      if (!user) {
+        console.log('User not found')
+        return res.status(404).send({ message: "User Not found." });
+      }
+
+      user.status = "Active";
+      user.email_verified = true
+      user.verified = true
+      user.save((err) => {
+        if (err) {
+          console.log('Failed to save User')
+          res.status(500).send({ message: err });
+          return;
+        } else {
+          res.status(200).send({ message: "Your Email address was confirmed!" });
+        }
+      });
+    })
+    .catch((e) => console.log("error", e));
+})
 
 //LOGIN ROUTE
 router.post('/login', async (req, res, next) => {
@@ -81,6 +116,13 @@ router.post('/login', async (req, res, next) => {
     email: req.body.email,
   })
   if (!user) return res.status(400).send('Email or password is wrong')
+
+  if (user.status != "Active") {
+    return res.status(401).send({
+      message: "Pending Account. Please Verify Your Email!",
+    });
+  }
+
   //PASSWORD IS CORRECT
   const validPass = await bcrypt.compare(req.body.password, user.password)
   if (!validPass) return res.status(400).send('Invalid password')
@@ -95,33 +137,21 @@ router.post('/login', async (req, res, next) => {
 
 })
 
-// PASSPORT LOCAL LOGIN
-router.post('/local-login', function (req, res) {
-  // If this function gets called, authentication was successful.
-  // `req.user` contains the authenticated user.
-
-  res.redirect('/profile')
-});
-
-router.get('/local-login/success', async (req, res, next) => {
-
-})
-
-// GOOGLE AUTH ROUTE
+// GOOGLE AUTH LOGIN
 router.get('/google', passport.authenticate('google', { scope: ['email', 'profile'] }))
 
-// ROUTE FOR ACCEPT GOOGLE CALLBACK
+// GOOGLE CALLBACKS ROUTES
 router.get('/google/callback', passport.authenticate('google', {
   successRedirect: '/auth/accept',
   failureRedirect: '/auth/failure',
 }))
 
-// IF GOOGLE SIGN IN FAILURE
+// FAILURE GOOGLE CALLBACK
 router.get('/failure', (req, res) => {
   res.send('Something went wrong...')
 })
 
-// IF GOOGLE SIGN IN ACCEPTED REDIRECT TO FRONTEND PROFILE PAGE
+// SUCCESS GOOGLE CALLBACK
 router.get('/accept', async (req, res, next) => {
   // console.log(req.user)
   const user = await User.findOne({
@@ -197,9 +227,8 @@ router.get('/logout', (req, res) => {
   res.redirect('/')
 })
 
-// CHECK IF isAuth?
+// GET AUTH INFO
 router.get('/me', verify, async (req, res) => {
-  console.log(req.user._id)
   const user = await User.findOne({
     _id: req.user._id
   }).catch((error) => {
@@ -207,6 +236,5 @@ router.get('/me', verify, async (req, res) => {
   })
   res.send(user)
 })
-
 
 module.exports = router

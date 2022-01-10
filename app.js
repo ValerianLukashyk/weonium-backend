@@ -13,7 +13,7 @@ const postsRoute = require('./routes/posts')
 const worksRoute = require('./routes/works')
 const authRoute = require('./routes/auth')
 const settingsRoute = require('./routes/siteSettings')
-const mailRoute = require('./routes/mail')
+
 
 const bodyParser = require('body-parser');
 
@@ -46,8 +46,6 @@ app.use('/auth', authRoute)
 app.use('/settings', settingsRoute)
 initRoutes(app)
 
-app.use('/mail', mailRoute)
-
 // ROUTES
 app.get('/', (req, res) => {
   res.send("<h1>Hello man!</h1>")
@@ -55,7 +53,7 @@ app.get('/', (req, res) => {
 
 //LISTENING
 const port = process.env.SERVER_PORT || 8000
-app.listen(port, () => console.log(`Server started at https://weonium.com/  on port => ${process.env.SERVER_PORT}`))
+app.listen(port, () => console.log(`Server started at http://localhost/  on port => ${process.env.SERVER_PORT}`))
 
 console.log('You are on Weonium Web Server. Welcome!')
 

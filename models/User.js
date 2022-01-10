@@ -7,10 +7,6 @@ const userSchema = new mongoose.Schema({
   localId: {
     type: Number,
   },
-  id: {
-    type: Number,
-    required: false,
-  },
   given_name: {
     type: String,
     required: false,
@@ -28,6 +24,15 @@ const userSchema = new mongoose.Schema({
   },
   email_verified: {
     type: Boolean
+  },
+  status: {
+    type: String, 
+    enum: ['Pending', 'Active'],
+    default: 'Pending'
+  },
+  confirmationCode: { 
+    type: String, 
+    unique: true 
   },
   verified: {
     type: Boolean

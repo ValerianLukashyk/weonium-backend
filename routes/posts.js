@@ -4,6 +4,7 @@ const Post = require('../models/Post')
 const verify = require('./verifyToken')
 const uploadController = require("../controllers/imageUploads");
 
+
 //GET BACK ALL THE POSTS
 router.get('/', async (req, res) => {
   try {
@@ -46,7 +47,7 @@ router.get('/:slug', async (req, res) => {
   try {
     const post = await Post.findOne({ slug: req.params.slug })
     res.json(post)
-    console.log('Look at post' + req.params.slug)
+    console.log('Look at post ' + req.params.slug)
   } catch (err) {
     res.json({ message: err })
   }

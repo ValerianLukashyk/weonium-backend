@@ -9,9 +9,7 @@ const multerFilter = (req, file, cb) => {
     }
 };
 
-
 const multerStorage = multer.memoryStorage(); // for images
-
 
 const upload = multer({
     storage: multerStorage,
@@ -19,7 +17,6 @@ const upload = multer({
 });
 
 const uploadFiles = upload.array("images", 10);
-
 
 const uploadImages = (req, res, next) => {
     uploadFiles(req, res, err => {
@@ -30,7 +27,6 @@ const uploadImages = (req, res, next) => {
         } else if (err) {
             return res.send(err);
         }
-
         next();
     });
 };
@@ -64,24 +60,11 @@ const resizeImages = async (req, res, next) => {
 
         })
     );
-
     next();
 };
-
-// const getResult = async (req, res) => {
-//     if (req.body.images.length <= 0) {
-//         return res.send(`You must select at least 1 image.`);
-//     }
-
-//     const images = req.body.images
-//         .map(image => "http://localhost:5000/upload/" + image)
-//     // .join("");
-//     console.log(images)
-//     return res.send(`Images were uploaded:${images}`);
-// };
 
 module.exports = {
     uploadImages: uploadImages,
     resizeImages: resizeImages,
-    // getResult: getResult
+
 };
