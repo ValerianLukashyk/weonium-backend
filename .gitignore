@@ -3,6 +3,5 @@ node_modules
 *.env
 _original_backup
 start.bat
-.gitignore
 .envcopy
 start copy.bat
