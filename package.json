@@ -1,13 +1,16 @@
 {
   "name": "restapi",
   "version": "1.0.0",
-  "description": "try to build something big",
+  "description": "backend part for my portfolio",
   "main": "app.js",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js"
   },
-  "author": "",
+  "author": "Valerian Lukashyk",
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.1",

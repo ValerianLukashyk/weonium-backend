@@ -38,7 +38,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use('/upload', express.static('upload'))
 
-//TODO: Rename Posts to WebGL Works
+//TODO: Rename Posts to WebGL  Works
 app.use('/posts', postsRoute)
 
 app.use('/works', worksRoute)

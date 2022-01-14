@@ -11,7 +11,7 @@ const uploadController = require("../controllers/imageUploads");
 
 
 // UPLOAD PROFILE AVATAR
-router.post('/photo-upload/:id', verify, uploadController.uploadImages, uploadController.resizeImages, async (req,res,next)=>{
+router.post('/photo-upload/:id', verify, uploadController.uploadImages, uploadController.resizeImages, async (req, res, next) => {
   if (req.body.images.length <= 0) {
     return res.send(`You must select at least 1 image.`);
   }
@@ -19,18 +19,18 @@ router.post('/photo-upload/:id', verify, uploadController.uploadImages, uploadCo
   const images = req.body.images
     .map(image => `/upload/${image}`)
 
-    const updatedUser = await User.updateOne(
-      { _id: req.params.id },
-      {
-        $set: {
-          picture: process.env.SERVER_URL +":"+process.env.SERVER_PORT+images[0]
-        }
+  const updatedUser = await User.updateOne(
+    { _id: req.params.id },
+    {
+      $set: {
+        picture: process.env.SERVER_URL + ":" + process.env.SERVER_PORT + images[0]
       }
-    )
+    }
+  )
 
-    const user = await User.findOne({ _id: req.params.id })
+  const user = await User.findOne({ _id: req.params.id })
 
-    res.send({message: "Profile picture has updated", url: user.picture})
+  res.send({ message: "Profile picture has updated", url: user.picture })
 
 })
 
@@ -128,7 +128,7 @@ router.post('/login', async (req, res, next) => {
   if (!validPass) return res.status(400).send('Invalid password')
 
   //Create and assign a token
-  const token = await jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
+  const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
   user.isAuth = true
   user.token = token
   await user.save()
@@ -168,7 +168,7 @@ router.get('/accept', async (req, res, next) => {
     //HASH THE PASSWORD
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
-
+    console.log(req.user)
     const user = new User({
       id: req.user.id,
       displayName: req.user.displayName,
@@ -229,12 +229,16 @@ router.get('/logout', (req, res) => {
 
 // GET AUTH INFO
 router.get('/me', verify, async (req, res) => {
-  const user = await User.findOne({
-    _id: req.user._id
-  }).catch((error) => {
-    res.send(error)
-  })
-  res.send(user)
+  
+  if (req.user._id) {
+    const user = await User.findOne({
+      _id: req.user._id
+    }).catch((error) => {
+
+    })
+    res.send(user)
+  }
+  
 })
 
 module.exports = router
