@@ -2,13 +2,13 @@
   "name": "restapi",
   "version": "1.0.0",
   "description": "backend part for my portfolio",
-  "main": "index.js",
+  "main": "api/index.js",
   "engines": {
     "node": "14.x"
   },
   "scripts": {
-    "dev": "nodemon app.js",
-    "start": "node index.js"
+    "dev": "nodemon api/index.js",
+    "start": "node api/index.js"
     
   },
   "author": "Valerian Lukashyk",
