@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "nodemon app.js",
-    "start": "node index.js",
-    "build": "node index.js"
+    "start": "node index.js"
+    
   },
   "author": "Valerian Lukashyk",
   "license": "ISC",
